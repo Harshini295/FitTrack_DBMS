@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Report</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        .recommendation-section {
+            margin-bottom: 20px;
+        }
+        .recommendation-section hr {
+            margin-top: 10px;
+        }
+        .food-image {
+            max-width: 200px;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .exercise-video {
+            max-width: 100%;
+            margin: 10px 0;
+        }
+        .nutrient-value {
+            font-style: italic;
+            color: #666;
+        }
+        .calories-info {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .recommendation-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .recommendation-card:last-child hr {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Weekly Recommendation Report</h1>
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">Report Details</h5>
+                <p class="card-text">User ID: {{ user_id }}</p>
+                <p class="card-text">Week of: {{ week_start_date.strftime('%Y-%m-%d') }} - {{ week_end_date.strftime('%Y-%m-%d') }}</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-primary">
+                    <tr>
+                        <th width="15%">Date</th>
+                        <th width="42.5%">Food Recommendations</th>
+                        <th width="42.5%">Exercise Recommendations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in weekly_recommendations %}
+                    <tr>
+                        <td class="align-middle">{{ entry.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if entry.food_recommendations %}
+                                {% for food in entry.food_recommendations %}
+                                    <div class="recommendation-card">
+                                        <h5>{{ food.food_name }}</h5>
+                                        <p>{{ food.food_description }}</p>
+                                        {% if food.image_url %}
+                                        <img src="{{ food.image_url }}" alt="{{ food.food_name }}" class="food-image">
+                                        {% endif %}
+                                        <p class="calories-info">Calories: {{ food.calories }} kcal</p>
+                                        <p class="nutrient-value">Nutrients: {{ food.nutrient_value }}</p>
+                                        <hr>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No food recommendations for this day.</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.exercise_recommendations %}
+                                {% for exercise in entry.exercise_recommendations %}
+                                    <div class="recommendation-card">
+                                        <h5>{{ exercise.workout_name }}</h5>
+                                        <p>{{ exercise.workout_desc }}</p>
+                                        {% if exercise.video %}
+                                        <div class="exercise-video">
+                                            <a href="{{ exercise.video }}" target="_blank" class="btn btn-primary">
+                                                Watch Video
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        <p class="calories-info">Calories Burned: {{ exercise.cal_burned_per_hour }} kcal/hour</p>
+                                        <p><strong>{{ exercise.recommended_duration }}</strong></p>
+                                        <hr>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No exercise recommendations for this day.</p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

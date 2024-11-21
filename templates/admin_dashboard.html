@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .dashboard {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .content-section {
+            margin: 20px 0;
+        }
+        .content-section h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        .content-section p {
+            color: #666;
+        }
+        .logout-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        td {
+            background-color: #f2f2f2;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+        .action-button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .action-button:hover {
+            background-color: #45a049;
+        }
+        .form-container {
+            display: none; 
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-container input, .form-container select, .form-container textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-container button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+        
+        .allergy-container {
+            display: flex;
+            
+            gap: 10px; 
+            margin: 10px 0;
+        }
+
+        .allergy-option {
+            display: flex;
+            align-items: right;
+        }
+
+        .allergy-option input[type="checkbox"] {
+            margin-right: 5px; 
+        }
+
+        .allergy-option label {
+            font-size: 15px;
+            color: #413d3d;
+        }
+
+        
+        .form-container label {
+            margin-bottom: 5px;
+        }
+    </style>
+    <script>
+        
+        function toggleForm(formId) {
+            var form = document.getElementById(formId);
+            if (form.style.display === "none" || form.style.display === "") {
+                form.style.display = "block";
+            } else {
+                form.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div class="dashboard">
+    <h2>Welcome, Admin</h2>
+
+    
+
+    <div class="content-section">
+        <h3>User Registration by Region</h3>
+        <p>Below is the list of user registrations categorized by region:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Region</th>
+                    <th>User Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for region, count in user_statistics %}
+                    <tr>
+                        <td>{{ region if region else 'Unknown' }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h3>Manage Food Planner</h3>
+        <p>View, edit, or delete food plans for each region.</p>
+        <div class="button-container">
+            <a href="javascript:void(0);" onclick="toggleForm('addFoodForm')" class="action-button">Add Food Plans</a>
+            <a href="javascript:void(0);" onclick="toggleForm('editFoodForm')" class="action-button">Edit Food Plan</a>
+            <a href="javascript:void(0);" onclick="toggleForm('deleteFoodForm')" class="action-button">Delete Food Plan</a>
+        </div>
+
+        <h3>Manage Workout Planner</h3>
+        <p>View, edit, or delete exercise plans for each region.</p>
+        <div class="button-container" style="margin-top: 20px;">
+            <a href="javascript:void(0);" onclick="toggleForm('addExerciseForm')" class="action-button">Add Exercise Plans</a>
+            <a href="javascript:void(0);" onclick="toggleForm('editExerciseForm')" class="action-button">Edit Exercise Plans</a>
+            <a href="javascript:void(0);" onclick="toggleForm('deleteExerciseForm')" class="action-button">Delete Exercise Plans</a>
+
+        </div>
+    </div>
+
+    <!-- Add Food Form -->
+<div id="addFoodForm" class="form-container">
+    <h3>Add Food Item</h3>
+    <form method="POST" action="{{ url_for('add_food_item') }}">
+        <label for="region">Region</label>
+        <select name="region" required>
+            <option value="" disabled selected>Select Region</option>
+            {% for region in region %}
+                <option value="{{ region.region_id }}">{{ region.region_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="food_name">Food Name:</label>
+        <input type="text" id="food_name" name="food_name" required>
+        
+        <label for="food_description">Food Description:</label>
+        <textarea id="food_description" name="food_description" required></textarea>
+        
+        <label for="nutrient_value">Nutrient Value:</label>
+        <input type="text" id="nutrient_value" name="nutrient_value" required>
+        
+        <label for="calories">Calories:</label>
+        <input type="number" id="calories" name="calories" required>
+        
+        <label for="allergy">Allergy:</label>
+        <div class="allergy-container">
+            {% for allergy in allergies %}
+            <div class="allergy-option">
+                <input type="checkbox" id="allergy_{{ allergy.allergy_id }}" name="allergy" value="{{ allergy.allergy_id }}">
+                <label for="allergy_{{ allergy.allergy_id }}">{{ allergy.allergy_name }}</label>
+            </div>
+            {% endfor %}
+        </div>
+
+
+        
+        <label for="image_url">Image URL:</label>
+        <input type="text" id="image_url" name="image_url" required>
+        
+        <button type="submit">Add Food Item</button>
+    </form>
+</div>
+
+    <!-- Edit Food Form -->
+<div id="editFoodForm" class="form-container">
+    <h3>Edit Food Item</h3>
+    <form method="POST" action="{{ url_for('edit_food_item') }}">
+        <label for="region">Region</label>
+        <select name="region" required>
+            <option value="" disabled selected>Select Region</option>
+            {% for region in region %}
+                <option value="{{ region.region_id }}">{{ region.region_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="food_name">Food Item</label>
+        <select name="food_name" required>
+            <option value="" disabled selected>Select Food Item</option>
+            {% for food_item in food_items %}
+                <option value="{{ food_item.food_name }}">{{ food_item.food_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="field">Field to Edit</label>
+        <select name="field" required>
+            <option value="food_description">Food Description</option>
+            <option value="nutrient_value">Nutrient Value</option>
+            <option value="calories">Calories</option>
+            <option value="prevent_if_allergy">Allergy Information</option>
+            <option value="image_url">Image URL</option>
+        </select>
+
+        <label for="new_value">New Value</label>
+        <input type="text" id="new_value" name="new_value" required>
+
+        <button type="submit">Edit Food Item</button>
+    </form>
+</div>
+
+
+<!-- Delete Food Form -->
+<div id="deleteFoodForm" class="form-container">
+    <h3>Delete Food Item</h3>
+    <form method="POST" action="{{ url_for('delete_food_item') }}">
+        <label for="region">Region</label>
+        <select name="region" required>
+            <option value="" disabled selected>Select Region</option>
+            {% for region in region %}
+                <option value="{{ region.region_id }}">{{ region.region_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="food_name">Food Item</label>
+        <select name="food_name" required>
+            <option value="" disabled selected>Select Food Item</option>
+            {% for food_item in food_items %}
+                <option value="{{ food_item.food_name }}">{{ food_item.food_name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Delete Food Item</button>
+    </form>
+</div>
+
+
+    <!-- Add Exercise Form -->
+    <div id="addExerciseForm" class="form-container">
+        <h3>Add Exercise Item</h3>
+        <form method="POST" action="{{ url_for('add_exercise') }}">
+    
+            <label for="workout_name">Workout Name:</label>
+            <input type="text" id="workout_name" name="workout_name" required>
+            
+            <label for="workout_desc">Workout Description:</label>
+            <textarea id="workout_desc" name="workout_desc" required></textarea>
+            
+            <label for="cal_burned_per_hour">Calories burned per hour:</label>
+            <input type="number" id="cal_burned_per_hour" name="cal_burned_per_hour" required>
+
+            <label for="video">Video:</label>
+            <input type="text" id="video" name="video" required>
+            
+            <button type="submit">Add Exercise</button>
+        </form>
+    </div>
+
+
+        <!-- Edit Exercise Form -->
+<div id="editExerciseForm" class="form-container">
+    <h3>Edit Exercise Item</h3>
+    <form method="POST" action="{{ url_for('edit_exercises') }}">
+        <label for="workout_name">Exercise Name</label>
+        <select name="workout_name" required>
+            <option value="" disabled selected>Select Exercise</option>
+            {% for workout_item in workout_items %}
+                <option value="{{ workout_item.workout_name }}">{{ workout_item.workout_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="field">Field to Edit</label>
+        <select name="field" required>
+            <option value="workout_desc">Workout Description</option>
+            <option value="cal_burned_per_hour">Calories</option>
+            <option value="video">Video URL</option>
+        </select>
+
+        <label for="new_value">New Value</label>
+        <input type="text" id="new_value" name="new_value" required>
+
+        <button type="submit">Edit Exercise</button>
+    </form>
+</div>
+
+<!-- Delete Exercise Form -->
+<div id="deleteExerciseForm" class="form-container">
+    <h3>Delete Exercise Item</h3>
+    <form method="POST" action="{{ url_for('delete_exercises') }}">
+        <label for="workout_name">Workout Name</label>
+        <select name="workout_name" required>
+            <option value="" disabled selected>Select Workout</option>
+            {% for workout_item in workout_items %}
+                <option value="{{ workout_item.workout_name }}">{{ workout_item.workout_name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Delete Workout</button>
+    </form>
+</div>
+    <!-- Logout Button -->
+    <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+</div>
+</body>
+</html>

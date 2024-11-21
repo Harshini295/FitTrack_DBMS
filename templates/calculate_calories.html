@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate Calories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
+        .center {
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover   
+ {
+            background-color: #3e8e41;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <h2>Calculated Calories: {{ calculated_calories }}</h2>
+        
+        <button id="backToHomeButton">Back to Home</button>
+        <button id="getrecommendations" style="margin-top:15px;">Get Personalised Recommendations</button>
+
+<script>
+    document.getElementById('backToHomeButton').addEventListener('click', function() {
+        window.location.href = "{{ url_for('home') }}";
+    });
+    document.getElementById('getrecommendations').addEventListener('click', function() {
+        window.location.href = "{{ url_for('recommendations') }}";
+    });
+</script>
+    </div>
+</body>
+</html>

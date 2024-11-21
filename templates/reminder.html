@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Reminder</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Form styling */
+        h2 {
+            color: #006064;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #00838f;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #b2ebf2;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #00acc1;
+        }
+
+        button {
+            background: #00acc1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background: #00838f;
+        }
+
+        /* Overlay styles */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Popup styles */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            min-width: 300px;
+            z-index: 1000;
+        }
+
+        .popup.show {
+            display: block;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translate(-50%, -60%);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        .popup p {
+            margin-bottom: 20px;
+            color: #006064;
+            font-size: 1.2rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            form {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .popup {
+                min-width: 280px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Set Water Reminder Frequency</h2>
+    <form action="{{ url_for('set_reminder') }}" method="post">
+        <label for="frequency">Reminder Frequency (minutes):</label>
+        <input type="number" name="frequency_minutes" id="frequency" required min="1">
+        <button type="submit">Set Reminder</button>
+    </form>
+
+    <div id="overlay" class="overlay"></div>
+    <div id="popup" class="popup">
+        <p id="reminderMessage">It's time to drink water!</p>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
+    <script>
+        function closePopup() {
+            document.getElementById("popup").classList.remove("show");
+            document.getElementById("overlay").classList.remove("show");
+        }
+
+        async function checkReminder() {
+            try {
+                const response = await fetch('/get_reminder');
+                const data = await response.json();
+
+                if (data.status === 'reminder' && data.message) {
+                    document.getElementById("reminderMessage").innerText = data.message;
+                    document.getElementById("popup").classList.add("show");
+                    document.getElementById("overlay").classList.add("show");
+                }
+            } catch (error) {
+                console.error("Error fetching reminder:", error);
+            }
+        }
+
+        setInterval(checkReminder, 300000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack - Home</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .center {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #calculateCaloriesButton {
+            background-color: #2ecc71;
+        }
+
+        #get-recommendations {
+            background-color: #e67e22;
+        }
+
+        #set-water-reminder {
+            background-color: #3498db;
+        }
+
+        #logout-button {
+            background-color: #95a5a6;
+            margin-top: 1rem;
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+         /* Basic styling for the pop-up */
+         #reminderPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            text-align: center;
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <h2>Welcome to FitTrack!</h2>
+        
+        <input type="hidden" id="caloriesStatus" value="{{ 'true' if calories is not none else 'false' }}">
+        
+        {% if calories is not none %}
+            <p>Your daily calorie requirement is: 
+                <span class="calories">{{ calculated_calories }} calories</span>
+            </p>
+        {% else %}
+            <p class="error">Unable to calculate calories. Please check your data.</p>
+        {% endif %}
+
+        <div class="button-container">
+            <button id="calculateCaloriesButton">
+                {% if calories is none %}
+                    Calculate Calories
+                {% else %}
+                    Recalculate Calories
+                {% endif %}
+            </button>
+
+            <button id="get-recommendations">
+                Get Personalized Recommendations
+            </button>
+
+            <!-- New Set Water Reminder Button -->
+            <button id="set-water-reminder">
+                    Set Water Reminder
+            </button>
+
+            <button id="weekly_report" data-user-id="{{ user_id }}">
+                Get Weekly Report
+            </button>
+
+            <button id="logout-button">
+                Logout
+            </button>
+
+            <!-- Reminder pop-up and overlay -->
+            <div id="overlay"></div>
+            <div id="reminderPopup">
+                <p>It's time to drink water!</p>
+            <button onclick="closeReminder()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Button initialization
+        const calculateButton = document.getElementById("calculateCaloriesButton");
+        const recommendationsButton = document.getElementById("get-recommendations");
+        const logoutButton = document.getElementById("logout-button");
+        const setWaterReminderButton = document.getElementById("set-water-reminder");
+        const weeklyreport = document.getElementById("weekly_report");
+        const hasCalories = document.getElementById("caloriesStatus").value === 'true';
+
+        // Button events
+        calculateButton.addEventListener("click", function() {
+            this.classList.add('loading');
+            this.textContent = 'Calculating...';
+            window.location.href = "{{ url_for('calculate_calories') }}";
+        });
+
+        recommendationsButton.addEventListener("click", function() {
+            if (!this.disabled) {
+                this.classList.add('loading');
+                this.textContent = 'Loading Recommendations...';
+                window.location.href = "{{ url_for('recommendations') }}";
+            }
+        });
+
+        // JavaScript to handle the button click and redirect
+            document.getElementById("set-water-reminder").addEventListener("click", function() {
+                window.location.href = "{{ url_for('set_reminder') }}";
+    });
+
+            weeklyreport.addEventListener("click", function() {
+            if (!this.disabled) {
+                
+                this.classList.add('loading');
+                this.textContent = 'Loading Weekly Report...';
+                
+                
+                window.location.href = `/generate_weekly_report`;
+            }
+        });
+
+
+
+
+        logoutButton.addEventListener("click", function() {
+            if (!this.disabled) {
+                this.classList.add('loading');
+                this.textContent = 'Logging out';
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        });
+
+        // Handle recommendations button state
+        if (!hasCalories) {
+            recommendationsButton.disabled = true;
+            recommendationsButton.title = "Please calculate calories first";
+        }
+
+
+        // Function to fetch reminder frequency
+        async function getReminderFrequency() {
+            const response = await fetch('/get_reminder_frequency');
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                return data.frequency_minutes;
+            } else {
+                console.error("No reminder frequency set or user not authenticated");
+                return null;
+            }
+        }
+
+        // Show reminder popup
+        function showReminder() {
+            document.getElementById("overlay").style.display = "block";
+            document.getElementById("reminderPopup").style.display = "block";
+        }
+
+        // Close reminder popup
+        function closeReminder() {
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("reminderPopup").style.display = "none";
+        }
+
+        // Initialize reminder interval based on the user's frequency setting
+        async function initializeReminder() {
+            const frequencyMinutes = await getReminderFrequency();
+
+            if (frequencyMinutes) {
+                const frequencyMilliseconds = frequencyMinutes * 60000; // Convert minutes to milliseconds
+                setInterval(showReminder, frequencyMilliseconds);
+            }
+        }
+
+        // Start the reminder when the page loads
+        window.onload = initializeReminder;
+    </script>
+</body>
+</html>

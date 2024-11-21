@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+    <link rel="stylesheet" href="static/styles.css">  
+</head>
+<body>
+    <div class="container">
+        <h1>User Registration</h1>
+        <form action="{{ url_for('register') }}" method="POST">
+            <input type="text" name="name" placeholder="Name" required>
+            <input type="number" name="age" placeholder="Age" required>
+            <select name="gender" required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+            </select>
+            <input type="number" step="1" name="height" placeholder="Height (cm)" required>
+            <input type="number" step="1" name="weight" placeholder="Weight (kg)" required>
+            <select name="region" required>
+                <option value="" disabled selected>Select Region</option>
+                {% for region in region %}
+                    <option value="{{ region.region_id }}">{{ region.region_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="goal" required>
+                <option value="" disabled selected>Select Goal</option>
+                {% for goal in goals %}
+                    <option value="{{ goal.goal_id }}">{{ goal.goal_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="allergy">
+                <option value="" disabled selected>Select Allergy (optional)</option>
+                {% for allergy in allergies %}
+                    <option value="{{ allergy.allergy_id }}">{{ allergy.allergy_name }}</option>
+                {% endfor %}
+            </select>
+            
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+</html>
